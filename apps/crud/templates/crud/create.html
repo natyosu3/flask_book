@@ -6,6 +6,14 @@
     <title>ユーザー新規作成</title>
 </head>
 <body>
+    <div>
+        {% if current_user.is_authenticated %}
+            <p>
+                <span>{{ current_user.username }}</span>
+                <span><a href="{{ url_for('auth.login' ) }}">ログアウト</a></span>
+            </p>
+        {% endif %}
+    </div>
     <h2>ユーザ新規作成</h2>
     <form action="{{ url_for('crud.create_user') }}" method="post" novalidate="novalidate">
         {{ form.csrf_token }}

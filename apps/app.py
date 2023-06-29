@@ -1,11 +1,18 @@
 from pathlib import Path
 from os import urandom
 from flask import Flask
+from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_debugtoolbar import DebugToolbarExtension
 
+
+# LoginManagerをインスタンス化する
+login_manager = LoginManager()
+# Login_view属性に未ログイン時にリダイレクトするエンドポイントを指定する。
+login_manager.login_view = "auth.signup"
+login_manager.login_message = ""
 
 # SQLAlchemyをインスタンス化する
 db = SQLAlchemy()
@@ -30,6 +37,8 @@ def create_app():
     # toolbar = DebugToolbarExtension(app)
     csrf.init_app(app)
 
+    login_manager.init_app(app)
+
     # SQLAlchemyとアプリを連携する
     db.init_app(app)
     # Migrateとアプリを連携する
@@ -40,5 +49,8 @@ def create_app():
 
     # register_blueprintを使いviewsのcrudをアプリへ登録する
     app.register_blueprint(crud_views.crud, url_prefix="/crud")
+
+    from apps.auth import views as auth_views
+    app.register_blueprint(auth_views.auth, url_prefix="/auth")
 
     return app
