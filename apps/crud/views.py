@@ -4,7 +4,8 @@ from apps.app import db
 # Userクラスをimportする
 from apps.crud.models import User
 
-from flask import Blueprint, render_template, redirect, url_for
+
+from flask import Blueprint, render_template, redirect, url_for, Response
 
 # Blueprintでcrudアプリを生成する
 crud = Blueprint(
@@ -14,10 +15,14 @@ crud = Blueprint(
     static_folder="static",
 )
 
-# indexエンドポイントを作成しindex.htmlを返す
-@crud.route("/")
-def index():
-    return render_template("crud/index.html")
+@crud.after_request
+def add_header(response: Response):
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
 
 @crud.route("/sql")
 def sql():
@@ -42,3 +47,37 @@ def create_user():
         # ユーザの一覧画面へリダイレクトする
         return redirect(url_for("crud.users"))
     return render_template("crud/create.html", form=form)
+
+@crud.route("/users")
+def users():
+    # ユーザ一覧を取得する
+    users = User.query.all()
+    return render_template("crud/index.html", users=users)
+
+@crud.route("/users/<user_id>", methods=["GET", "POST"])
+def edit_user(user_id):
+    form: UserForm = UserForm()
+
+    # Userモデルを利用してユーザーを取得する
+    user: User = User.query.filter_by(id=user_id).first()
+
+    # fromからサブミットされた場合はユーザを更新し、ユーザーの一覧画面へリダイレクトする
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.password = form.password.data
+        db.session.add(user)
+        db.session.commit()
+
+        return redirect(url_for("crud.users"))
+    
+    # GETの場合はHTMLを返す
+    return render_template("crud/edit.html", user=user, form=form)
+
+
+@crud.route("/users/<user_id>/delete", methods=["GET", "POST"])
+def delete_user(user_id):
+    user = User.query.filter_by(id=user_id).first()
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for("crud.users"))

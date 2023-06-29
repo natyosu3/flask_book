@@ -1,17 +1,18 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
 
+from flask_sqlalchemy.model import Model
 from apps.app import db
 from werkzeug.security import generate_password_hash
 
 
 # db.Modelを継承したUserクラスを作成する
-class User(db.Model):
+class User(db.Model, Model):
     # テーブル名を指定する
     __tablename__ = "users"
     # カラムを定義する
     id = Column(Integer, primary_key=True)
-    username = Column(String, index=True)
+    username = Column(String, index=True, unique=True)
     email = Column(String, unique=True, index=True)
     password_hash = Column(String)
     created_at = Column(DateTime, default=datetime.now())

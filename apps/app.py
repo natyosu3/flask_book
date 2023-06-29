@@ -27,7 +27,7 @@ def create_app():
         WTF_CSRF_SECRET_KEY=urandom(24),
         DEBUG_TB_INTERCEPT_REDIRECTS=False,
     )
-    toolbar = DebugToolbarExtension(app)
+    # toolbar = DebugToolbarExtension(app)
     csrf.init_app(app)
 
     # SQLAlchemyとアプリを連携する
